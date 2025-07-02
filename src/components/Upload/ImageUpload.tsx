@@ -31,28 +31,28 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ index, label, pose }) => {
   const [message, setMessage] = useState<string>("");
   const { loadNet, getBoundingBox } = usePoseNet();
 
-  // Validation logic for categories
-  const validateCategory = (
-    bbox: BoundingBox,
-    img: HTMLImageElement,
-    index: string
-  ) => {
-    const relHeight = bbox.height / img.naturalHeight;
-    const relWidth = bbox.width / img.naturalWidth;
-    if (index === "Full body") {
-      return relHeight > 0.7 && relWidth > 0.2; // Full body
-    } else if (index === "Close up") {
-      return relHeight > 0.5 && relWidth > 0.5; // Close up
-    } else if (index === "Half upper body") {
-      return relHeight > 0.3 && relHeight < 0.7 && relWidth > 0.3; // Half upper body
-    } else if (index === "Close up with shoulder") {
-      return relHeight > 0.4 && relWidth > 0.6; // Close up with shoulder
-    }
-    return false;
-  };
   // Handle image selection and verification
   const handleImageChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
+      // Validation logic for categories
+      const validateCategory = (
+        bbox: BoundingBox,
+        img: HTMLImageElement,
+        index: string
+      ) => {
+        const relHeight = bbox.height / img.naturalHeight;
+        const relWidth = bbox.width / img.naturalWidth;
+        if (index === "Full body") {
+          return relHeight > 0.7 && relWidth > 0.2; // Full body
+        } else if (index === "Close up") {
+          return relHeight > 0.5 && relWidth > 0.5; // Close up
+        } else if (index === "Half upper body") {
+          return relHeight > 0.3 && relHeight < 0.7 && relWidth > 0.3; // Half upper body
+        } else if (index === "Close up with shoulder") {
+          return relHeight > 0.4 && relWidth > 0.6; // Close up with shoulder
+        }
+        return false;
+      };
       const file = event.target.files?.[0];
       if (!file) return;
 
@@ -81,7 +81,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ index, label, pose }) => {
         setMessage(newMessage);
       };
     },
-    [index, label, validateCategory, loadNet, getBoundingBox]
+    [label, loadNet, getBoundingBox, pose]
   );
 
   return (
