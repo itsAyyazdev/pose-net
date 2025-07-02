@@ -1,58 +1,31 @@
 "use client";
-
 import { useState, useCallback } from "react";
 import "@tensorflow/tfjs";
 import ImagePreview from "../Preview/ImagePreview";
 import FileInput from "../Input/FileInput";
 import MessageDisplay from "../Message/MessageDisplay";
 import Label from "../Label/Label";
-import { usePoseNet } from "@/lib/usePoseNet";
+import { usePoseNet, validateCategory } from "@/lib/usePoseNet";
 import { readFileAsDataURL } from "@/lib/fileUtils";
-
-// Define interfaces
-interface BoundingBox {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-  width: number;
-  height: number;
-}
+import { PoseTypes } from "@/types/poseTypes";
 
 interface ImageUploadProps {
   index: number;
   label: string;
-  pose: string;
+  pose: PoseTypes;
 }
 
 // Main ImageUpload Component
 const ImageUpload: React.FC<ImageUploadProps> = ({ index, label, pose }) => {
   const [image, setImage] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
-  const { loadNet, getBoundingBox } = usePoseNet();
+  const { loadNet } = usePoseNet();
 
   // Handle image selection and verification
   const handleImageChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       // Validation logic for categories
-      const validateCategory = (
-        bbox: BoundingBox,
-        img: HTMLImageElement,
-        index: string
-      ) => {
-        const relHeight = bbox.height / img.naturalHeight;
-        const relWidth = bbox.width / img.naturalWidth;
-        if (index === "Full body") {
-          return relHeight > 0.7 && relWidth > 0.2; // Full body
-        } else if (index === "Close up") {
-          return relHeight > 0.5 && relWidth > 0.5; // Close up
-        } else if (index === "Half upper body") {
-          return relHeight > 0.3 && relHeight < 0.7 && relWidth > 0.3; // Half upper body
-        } else if (index === "Close up with shoulder") {
-          return relHeight > 0.4 && relWidth > 0.6; // Close up with shoulder
-        }
-        return false;
-      };
+
       const file = event.target.files?.[0];
       if (!file) return;
 
@@ -72,16 +45,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ index, label, pose }) => {
           setMessage("No person detected.");
           return;
         }
-
-        const bbox = getBoundingBox(poseIs.keypoints);
-        const isValid = validateCategory(bbox, img, pose);
+        const isValid = validateCategory(poseIs.keypoints, pose);
         const newMessage = isValid
           ? "Photo verified!"
           : `Photo may not match: ${label}`;
         setMessage(newMessage);
       };
     },
-    [label, loadNet, getBoundingBox, pose]
+    [label, loadNet, pose]
   );
 
   return (
