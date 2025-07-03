@@ -45,6 +45,10 @@ export const validateCategory = (
   // Count detected keypoints
   const detectedCount = keyPoints.filter((kp) => kp.score >= 0.5).length;
 
+  if (detectedCount < 1) {
+    return false; // Likely not a human image
+  }
+
   // Get y-coordinates for key body parts
   const noseY = getY("nose");
   const leftHipY = getY("leftHip");
